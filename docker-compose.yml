@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+
+  app:
+    # image: premdevdis/requirementportal
+    build: .
+    container_name: requirementportalapp
+    entrypoint: python main.py
+    ports:
+      - "80:8085"
