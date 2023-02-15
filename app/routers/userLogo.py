@@ -58,16 +58,39 @@ async def get_logos(id: str,):
 
 #Update particular user logo-profile-image
 @router.put('/updatelogo/{id}', status_code=status.HTTP_200_OK)
-async def update_logo(id: str, profile: UploadFile, title: str = Form(),  user_id: str = Depends(oauth2.require_user)):
+async def upload_file(id: str, s3: BaseClient = Depends(s3_auth), profile: UploadFile = File(None) , title: str = Form(None) ):
     if not ObjectId.is_valid(id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"Invalid FormId: {id}")
-    update_logo = UserLogos.find_one_and_update(
-        {'_id': ObjectId(id)}, {'$set': {"profile": profile.filename, "tittle": title}})
-    if not update_logo:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'No post with this id: {id} found')
-    return {"status": "User-logo and tittle updated successfully"}
+                            
+    if (profile is not None) and (title is None):
+        upload_obj = upload_file_to_bucket(s3_client=s3, profile=profile.file,
+                                bucket='userlogoimage',
+                                object_name=profile.filename
+                                )
+        if upload_obj:
+           image = f'https://userlogoimage.s3.amazonaws.com/{profile.filename}'
+           profileimg = UserLogos.find_one_and_update( {'_id': ObjectId(id)}, {'$set': {"profile": image}} )
+           return {"status": "User-logo updated successfully"}
+
+    elif (title is not None) and (profile is None):
+         titletext = UserLogos.find_one_and_update( {'_id': ObjectId(id)}, {'$set': {"title": title }} )
+         return {"status": "User-title updated successfully"}
+
+    else:
+        if not ObjectId.is_valid(id):
+           raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid FormId: {id}")
+        
+        upload_obj = upload_file_to_bucket(s3_client=s3, profile=profile.file,
+                                bucket='userlogoimage',
+                                object_name=profile.filename
+                                )
+        if upload_obj:
+           image = f'https://userlogoimage.s3.amazonaws.com/{profile.filename}'
+           result = UserLogos.find_one_and_update( {'_id': ObjectId(id)}, {'$set': {"profile": image, "title": title }} )
+           return {"status": "User-logo and tittle updated successfully"}
+  
 
 #Delete particular user logo-profile-image
 @router.delete('/deletelogo/{id}', status_code=status.HTTP_200_OK)

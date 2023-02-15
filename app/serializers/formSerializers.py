@@ -43,3 +43,18 @@ def getmodulename(post) -> dict:
         "modulename": post["modulename"],
     }
 
+def getsametabledata(post) -> dict:
+    return {
+      "tableData": post["tableData"]
+    }
+
+def getsametabledatalist(post) -> list:
+    emptyarray = []
+    for val in post:
+        emptyarray.append((val))
+    return emptyarray
+      
+    
+
+    
+

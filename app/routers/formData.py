@@ -17,14 +17,14 @@ async def create_tabledata(payload: schemas.tabledataSchema, user_id: str = Depe
     payload.tableData = payload.tableData
     FormtableDates.insert_one(payload.dict())
     return {"status": "Form-tableData created successfully"}
-    
+
 #get the particular-moudle-tableData
 @router.get('/moduletabledata/{id}', status_code=status.HTTP_200_OK)
 async def get_form(id: str,):
     if not ObjectId.is_valid(id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"Invalid FormId: {id}")
-    formtableDate = FormtableDates.find({'moduleId' : str(id) } )
+    formtableDate = FormtableDates.find({'moduleId': str(id)})
     formtableData = []
     for form in formtableDate:
         formtableData.append(getmoduletabledata(form))
@@ -36,7 +36,7 @@ async def get_form(id: str,):
     if not ObjectId.is_valid(id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"Invalid FormId: {id}")
-    formtableDate = FormtableDates.find({'_id': ObjectId(id) } )
+    formtableDate = FormtableDates.find({'_id': ObjectId(id)})
     formtableData = []
     for form in formtableDate:
         formtableData.append(gettabledata(form))
@@ -64,9 +64,65 @@ async def update_tabledata(id: str, payload: schemas.updatetabledataSchema, user
                             detail=f'No post with this id: {id} found')
     return {"status": "Form-tabledata updated successfully"}
 
-#Delete the particular tableData
+
+# update tableDatafield using moudleId
+@router.put('/updatetabledatafield/{id}', status_code=status.HTTP_200_OK)
+async def update_sametabledata(id: str, payload: dict, user_id: str = Depends(oauth2.require_user)):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Invalid FormId: {id}")
+
+    payloaddata = payload.items()
+
+    for tabedatafield in payloaddata:
+        FormtableDates.update_many({
+            'moduleId': str(id),
+            "tableData.tableData." + tabedatafield[0]: {
+                "$exists": True
+            }
+        },
+            [
+            {
+                "$set": {
+                    "tableData.tableData": {
+                        "$map": {
+                            "input": "$tableData.tableData",
+                            "in": {
+                                "$mergeObjects": [
+                                    {
+                                        "$cond": {
+                                            "if": {
+                                                "$eq": [
+                                                    "$$this." + tabedatafield[0],
+                                                    None
+                                                ]
+                                            },
+                                            "then": {},
+                                            "else": {
+                                                tabedatafield[1]: "$$this." + tabedatafield[0]
+                                            }
+                                        }
+                                    },
+                                    "$$this"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "$unset": "tableData.tableData." + tabedatafield[0]
+            }
+        ],
+            upsert= False)
+
+    return {"status": "Form-tabledata fields changed successfully"}
+
+
+
+# Delete the particular tableData
 @router.delete('/deletetabledata/{id}', status_code=status.HTTP_202_ACCEPTED)
-async def delete_tabledata(id: str,  user_id: str=Depends(oauth2.require_user)):
+async def delete_tabledata(id: str,  user_id: str = Depends(oauth2.require_user)):
     if not ObjectId.is_valid(id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"Invalid FormId: {id}")
