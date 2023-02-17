@@ -1,3 +1,4 @@
+from ast import List
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, constr
 
@@ -78,8 +79,7 @@ class formsSchema(BaseModel):
     recuriter: str
     created_at: datetime | None = None
     moduleelements: dict | None = None
-    singleColumnForms : dict | None = None
-
+    singleColumnForms = []
 
 class tabledataSchema(BaseModel):
     moduleId: str
@@ -92,8 +92,7 @@ class updateformSchema(BaseModel):
     modulename: str
     created_at = datetime.utcnow()
     moduleelements: dict | None = None
-    singleColumnForms : dict | None = None
-
+    singleColumnForms = []
 
 class formvalueSchema(BaseModel):
     moduleelements: dict | None = None
