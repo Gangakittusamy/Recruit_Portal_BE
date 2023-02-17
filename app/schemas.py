@@ -78,6 +78,7 @@ class formsSchema(BaseModel):
     recuriter: str
     created_at: datetime | None = None
     moduleelements: dict | None = None
+    singleColumnForms : dict | None = None
 
 
 class tabledataSchema(BaseModel):
@@ -91,6 +92,7 @@ class updateformSchema(BaseModel):
     modulename: str
     created_at = datetime.utcnow()
     moduleelements: dict | None = None
+    singleColumnForms : dict | None = None
 
 
 class formvalueSchema(BaseModel):
