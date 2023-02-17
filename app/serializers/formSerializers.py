@@ -5,7 +5,7 @@ def getuserformEntity(post) -> dict:
         "modulename": post["modulename"],
         "recuriter": post['recuriter'],
         "moduleelements": post["moduleelements"],
-        "singleColumnForms" : post["singleColumnForms"]
+        "singleColumnForms": post.get("singleColumnForms") if post.get("singleColumnForms") is not None else None
     }
 
 def getalluserformEntity(post) -> dict:
