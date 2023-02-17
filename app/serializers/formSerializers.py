@@ -5,6 +5,16 @@ def getuserformEntity(post) -> dict:
         "modulename": post["modulename"],
         "recuriter": post['recuriter'],
         "moduleelements": post["moduleelements"],
+        "singleColumnForms" : post["singleColumnForms"]
+    }
+
+def getalluserformEntity(post) -> dict:
+    return {
+        "_id": str(post["_id"]),
+        "modulename": post["modulename"],
+        "recuriter": post['recuriter'],
+        "moduleelements": post["moduleelements"],
+        "singleColumnForms": post.get("singleColumnForms") if post.get("singleColumnForms") is not None else None
     }
 
 def getmoduletabledata(post) -> dict:

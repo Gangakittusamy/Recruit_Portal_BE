@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException, status, APIRouter
 from app import schemas
 from app.database import Form
 from app import oauth2
-from app.serializers.formSerializers import getmodulename, getuserformEntity
+from app.serializers.formSerializers import getmodulename, getuserformEntity,getalluserformEntity
 from bson.objectid import ObjectId
 
 router = APIRouter()
@@ -24,7 +24,7 @@ def get_me(user_id: str = Depends(oauth2.require_user)):
     forms = Form.find()
     formData = []
     for form in forms:
-        formData.append(getuserformEntity(form))
+        formData.append(getalluserformEntity(form))
     return {"status": "success", "user": formData}
 
 #Get all module 
