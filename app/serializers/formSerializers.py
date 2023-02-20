@@ -31,6 +31,11 @@ def gettabledata(post) -> dict:
       "tableData": post["tableData"]
     }
 
+def getchecktabledata(post) -> dict:
+    return {
+      "tableData": post["tableData"]
+    }
+
 
 def getuserLogo(post) -> dict:
     return {
