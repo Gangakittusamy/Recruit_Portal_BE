@@ -14,26 +14,30 @@ router = APIRouter()
 
 # Create new user logo-profile-image using s3 bucket
 @router.post('/createlogo', status_code=status.HTTP_201_CREATED)
-async def upload_file(s3: BaseClient = Depends(s3_auth), profile: UploadFile = File(...), title: str = Form()):
+async def upload_file(
+    s3: BaseClient = Depends(s3_auth),
+    profile: UploadFile = File(...),
+    title: str = Form()
+):
     now = datetime.now()
-    created_at = datetime.now(),
-    upload_obj = upload_file_to_bucket(s3_client=s3, profile=profile.file,
-                                       bucket='userlogoimage',
-                                       object_name=profile.filename
-                                       )
+    upload_obj = upload_file_to_bucket(
+        s3_client=s3,
+        profile=profile.file,
+        bucket='userlogoimage',
+        object_name=profile.filename
+    )
     if upload_obj:
-        image = f'https://userlogoimage.s3.amazonaws.com/{profile.filename}'
-        result = UserLogos.insert_one(
-            {"profile": image, "title": title, "created_at": created_at})
-        logoDetails = UserLogos.find_one({'_id': result.inserted_id})
-        imageDetails = []
-        imageDetails.append(getuserLogo(logoDetails))
-        return {"status": "Profile-image and tittle created successfully", "data": imageDetails}
-
+        image_url = f'https://userlogoimage.s3.amazonaws.com/{profile.filename}'
+        logo = {"profile": image_url, "title": title, "created_at": now}
+        result = UserLogos.insert_one(logo)
+        image_details = [getuserLogo(
+            UserLogos.find_one({'_id': result.inserted_id}))]
+        return {"status": "Profile-image and title created successfully", "data": image_details}
     else:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail="File could not be uploaded")
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="File could not be uploaded"
+        )
 # Get the current user-logo(last-posted user logo-profile-image)
 
 
