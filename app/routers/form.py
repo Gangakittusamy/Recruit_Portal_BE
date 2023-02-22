@@ -1,6 +1,7 @@
 from datetime import datetime
 from fastapi import Depends, HTTPException, status, APIRouter
 from app import schemas
+from typing import Optional
 from app.database import Form
 from app import oauth2
 from app.serializers.formSerializers import getmodulename, getuserformEntity,getalluserformEntity
@@ -20,20 +21,22 @@ async def create_form(payload: schemas.formsSchema, user_id: str = Depends(oauth
 
 #Get all forms
 @router.get('/allforms', status_code=status.HTTP_200_OK)
-def get_me(user_id: str = Depends(oauth2.require_user)):
+def get_me(search: Optional[str] = None, user_id: str = Depends(oauth2.require_user)):
     forms = Form.find()
     formData = []
     for form in forms:
-        formData.append(getalluserformEntity(form))
+        if search is None or search.lower() in form['modulename'].lower():
+            formData.append(getalluserformEntity(form))
     return {"status": "success", "user": formData}
 
 #Get all module 
 @router.get('/getmodule', status_code=status.HTTP_200_OK)
-def get_me(user_id: str = Depends(oauth2.require_user)):
+def get_me(search: Optional[str] = None, user_id: str = Depends(oauth2.require_user)):
     forms = Form.find()
     formData = []
     for form in forms:
-        formData.append(getmodulename(form))
+        if search is None or search.lower() in form['modulename'].lower():
+         formData.append(getmodulename(form))
     return {"status": "success", "user": formData}
 
 #Get particular form
