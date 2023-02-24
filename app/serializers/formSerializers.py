@@ -22,13 +22,15 @@ def getmoduletabledata(post) -> dict:
       "_id": str(post["_id"]),
       "moduleId": post['moduleId'],
       "recuriter": post['recuriter'], 
-      "tableData": post["tableData"]
+      "tableData": post["tableData"],
+      "formImage": post.get("formImage", None)
     }
 
 def gettabledata(post) -> dict:
     return {
       "_id": str(post["_id"]),
-      "tableData": post["tableData"]
+      "tableData": post.get("tableData", {}),
+      "formImage": post.get("formImage", None)
     }
 
 def getchecktabledata(post) -> dict:

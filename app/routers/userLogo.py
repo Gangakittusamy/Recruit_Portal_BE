@@ -38,9 +38,8 @@ async def upload_file(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="File could not be uploaded"
         )
+    
 # Get the current user-logo(last-posted user logo-profile-image)
-
-
 @router.get('/currentuserlogo', status_code=status.HTTP_200_OK)
 async def get_currentlogo():
     logos = UserLogos.find().sort('created_at', -1).limit(1)
@@ -51,8 +50,6 @@ async def get_currentlogo():
     return {"data": userlogoData}
 
 # Get particular user logo-profile-image
-
-
 @router.get('/getuserlogo/{id}', status_code=status.HTTP_200_OK)
 async def get_logos(id: str,):
     if not ObjectId.is_valid(id):
@@ -65,8 +62,6 @@ async def get_logos(id: str,):
     return {"status": "success", "data": userlogoData}
 
 # Update particular user logo-profile-image
-
-
 @router.put('/updatelogo/{id}', status_code=status.HTTP_200_OK)
 async def upload_file(id: str, s3: BaseClient = Depends(s3_auth), profile: UploadFile = File(None), title: str = Form(None)):
     if not ObjectId.is_valid(id):
