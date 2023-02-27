@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from typing import Union
 from fastapi import Depends, HTTPException, status, APIRouter,Form
 from app import schemas
 from fastapi import File, UploadFile
@@ -82,26 +83,34 @@ def get_me(user_id: str = Depends(oauth2.require_user)):
 # update the particular tableData
 @router.put('/updatetabledata/{id}', status_code=status.HTTP_200_OK)
 async def update_tabledata(
-    id: str, 
-    s3: BaseClient = Depends(s3_auth), 
-    formImage: UploadFile = File(None), 
-    tableData: str = Form(None), 
+    id: str,
+    s3: BaseClient = Depends(s3_auth),
+    formImage: Union[UploadFile, str] = File(None),
+    tableData: str = Form(None),
     user_id: str = Depends(oauth2.require_user)
 ):
     if not ObjectId.is_valid(id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid FormId: {id}")
 
     updated_fields = {}
-    if formImage is not None:
+    image_url = ''
+
+    if isinstance(formImage, str):
+        # If formImage is a string, assume it is a URL and save it to the database
+        updated_fields['formImage'] = formImage
+    elif formImage is not None:
+        # If formImage is an UploadFile object, upload it to S3 and save the URL to the database
         upload_obj = upload_file_to_bucket(
-            s3_client=s3, 
-            profile=formImage.file, 
-            bucket='userlogoimage', 
+            s3_client=s3,
+            profile=formImage.file,
+            bucket='userlogoimage',
             object_name=formImage.filename
         )
         if upload_obj:
-            image = f'https://userlogoimage.s3.amazonaws.com/{formImage.filename}'
-            updated_fields['formImage'] = image
+            image_url = f'https://userlogoimage.s3.amazonaws.com/{formImage.filename}'
+            updated_fields['formImage'] = image_url
+    else:
+        updated_fields['formImage'] = ''
 
     if tableData is not None:
         updated_fields['tableData'] = json.loads(tableData)
@@ -111,6 +120,7 @@ async def update_tabledata(
 
     FormtableDates.find_one_and_update({'_id': ObjectId(id)}, {'$set': updated_fields})
     return {"status": "Form-tableData and Form-Image data updated successfully"}
+
 
 # update tableDatafield using moudleId
 @router.put('/updatetabledatafield/{id}', status_code=status.HTTP_200_OK)
