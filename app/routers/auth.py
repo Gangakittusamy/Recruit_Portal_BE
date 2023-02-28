@@ -56,25 +56,33 @@ async def create_user(payload: schemas.CreateUserSchema, request: Request):
 #login user
 @router.post('/login')
 def login(payload: schemas.LoginUserSchema, response: Response, Authorize: AuthJWT = Depends()):
-    # Check if the user exist
-    user = userEntity(User.find_one({'email': payload.email.lower()}))
+    # Check if the user exists
+    user = User.find_one({'email': payload.email.lower()})
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Incorrect Email or Password')
+    
+    # Convert the user to a loginuserEntity object
+    user_entity = userEntity(user)
+    
     # Check if user verified his email
-    if not user['verified']:
+    if not user_entity['verified']:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Please verify your email address')
+    
     # Check if the password is valid
-    if not utils.verify_password(payload.password, user['password']):
+    if not utils.verify_password(payload.password, user_entity['password']):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Incorrect Email or Password')
+    
     # Create access token
     access_token = Authorize.create_access_token(
-        subject=str(user["id"]), expires_time=timedelta(minutes=ACCESS_TOKEN_EXPIRES_IN))
+        subject=str(user_entity["id"]), expires_time=timedelta(minutes=ACCESS_TOKEN_EXPIRES_IN))
+    
     # Create refresh token
     refresh_token = Authorize.create_refresh_token(
-        subject=str(user["id"]), expires_time=timedelta(minutes=REFRESH_TOKEN_EXPIRES_IN))
+        subject=str(user_entity["id"]), expires_time=timedelta(minutes=REFRESH_TOKEN_EXPIRES_IN))
+    
     # Store refresh and access tokens in cookie
     response.set_cookie('access_token', access_token, ACCESS_TOKEN_EXPIRES_IN * 60,
                         ACCESS_TOKEN_EXPIRES_IN * 60, '/', None, False, True, 'lax')
@@ -82,8 +90,10 @@ def login(payload: schemas.LoginUserSchema, response: Response, Authorize: AuthJ
                         REFRESH_TOKEN_EXPIRES_IN * 60, REFRESH_TOKEN_EXPIRES_IN * 60, '/', None, False, True, 'lax')
     response.set_cookie('logged_in', 'True', ACCESS_TOKEN_EXPIRES_IN * 60,
                         ACCESS_TOKEN_EXPIRES_IN * 60, '/', None, False, False, 'lax')
-    # Send both access
+    
+    # Send both access token and success status
     return {'status': 'success', 'access_token': access_token}
+
 
 #Refresh the user token
 @router.get('/refresh')
